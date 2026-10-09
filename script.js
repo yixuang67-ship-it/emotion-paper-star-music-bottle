@@ -235,7 +235,6 @@ $("#favorite").addEventListener("click", (event) => {
   const button = event.currentTarget;
   const saved = button.getAttribute("aria-pressed") === "true";
   button.setAttribute("aria-pressed", String(!saved));
-  button.textContent = saved ? "♡" : "♥";
   toast(saved ? "已取消收藏" : "已收藏这首歌");
 });
 

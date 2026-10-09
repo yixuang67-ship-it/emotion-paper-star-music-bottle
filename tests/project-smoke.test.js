@@ -7,6 +7,7 @@ const { parseLrc } = require('../lyrics-core.js');
 const root = path.join(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'script.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const styles = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 
 test('catalog contains exactly the two requested local songs with all fields and resources', () => {
   const entries = [...source.matchAll(/\{ id: "([^"]+)", title: "([^"]+)", artist: "([^"]+)", album: "([^"]*)", duration: (\d+), src: "([^"]+)", cover: "([^"]+)", lyrics: "([^"]+)" \}/g)];
@@ -27,9 +28,28 @@ test('all supplied LRC files decode and contain timestamped lines', () => {
 
 test('carousel uses the current cover as a CD and animates only during playback', () => {
   assert.match(html, /class="carousel-disc"/);
-  assert.match(html, /\.is-playing \.carousel-disc\s*\{/);
-  assert.match(html, /@keyframes cd-spin/);
+  assert.match(styles, /#stage\.is-playing \.carousel-disc\s*\{/);
+  assert.match(styles, /@keyframes cd-spin/);
   assert.doesNotMatch(html, /星辰大海/);
+});
+
+test('CD and album cover stay circular and square', () => {
+  assert.match(styles, /\.carousel-disc\s*\{[^}]*aspect-ratio:\s*1\s*\/\s*1/s);
+  assert.match(styles, /\.carousel-disc\s*\{[^}]*border-radius:\s*50%/s);
+  assert.match(styles, /\.carousel-disc\s*\{[^}]*overflow:\s*hidden/s);
+  assert.match(styles, /#currentCover\s*\{[^}]*aspect-ratio:\s*1\s*\/\s*1/s);
+  assert.match(styles, /#currentCover\s*\{[^}]*height:\s*88%/s);
+  assert.match(styles, /#currentCover\s*\{[^}]*object-fit:\s*cover/s);
+});
+
+test('tablet and phone layouts reflow to a centered single column and keep overlays in view', () => {
+  assert.match(styles, /\.layout\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(styles, /\.header-actions\s*\{[^}]*flex:\s*0 0 auto/s);
+  assert.match(styles, /background-image:\s*url\('\.\/assets\/reference\/carousel-scene\.png'\)/);
+  assert.ok(fs.existsSync(path.join(root, 'assets/reference/carousel-scene.png')));
+  assert.match(styles, /@media\s*\(max-width:\s*767px\)[\s\S]*?\.carousel\s*\{[^}]*width:\s*min\(94vw,\s*430px\)/);
+  assert.match(styles, /\.modal\s*\{[^}]*max-height:\s*min\(90dvh,\s*900px\)/);
+  assert.match(styles, /body\s*\{[^}]*overflow-x:\s*hidden/);
 });
 
 test('player exposes song selection, lyrics, and current-song bottle navigation', () => {
